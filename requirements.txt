@@ -4,3 +4,6 @@ marshmallow
 langchain
 openai
 docker
+python-dotenv
+flask-sqlalchemy
+

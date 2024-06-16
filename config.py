@@ -11,3 +11,4 @@ class Config:
     OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///db.sqlite")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+

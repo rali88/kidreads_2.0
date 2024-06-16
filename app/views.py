@@ -3,6 +3,8 @@ from flask.views import MethodView
 from app.models import db, Story, Page
 from app.schemas import StorySchema, PageSchema
 from app.story_generator import generate_bullet_points, generate_story_page
+from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
 
 blp = Blueprint("stories", __name__, url_prefix="/api/stories", description="Operations on stories")
 
@@ -35,7 +37,6 @@ class PageList(MethodView):
         content, illustration = generate_story_page(bullet_points, history, characters)
         
         # Update characters with any new details from the illustration
-        # Assuming illustration description returns character details in a consistent format
         new_characters = extract_characters_from_illustration(illustration)
         characters.update(new_characters)
         story.characters = characters
@@ -47,6 +48,27 @@ class PageList(MethodView):
         return page
 
 def extract_characters_from_illustration(illustration):
-    # Placeholder function to extract characters from the illustration description
-    # In a real implementation, this would parse the illustration description to find character details
-    return {"Bob": "A boy with brown hair and blue eyes who loves soccer"}
+    """
+    Use LangChain with OpenAI to extract character descriptions from the illustration text.
+    """
+    llm = OpenAI(model_name="gpt-3.5-turbo")
+    prompt_template = PromptTemplate(
+        input_variables=["illustration"],
+        template="""
+        Extract the character descriptions from the following illustration text. 
+        Return the characters and their descriptions in the format 'CharacterName: description'.
+
+        Illustration Text:
+        {illustration}
+        """
+    )
+    prompt = prompt_template.format(illustration=illustration)
+    response = llm(prompt)
+    characters = {}
+
+    for line in response.strip().split("\n"):
+        if ": " in line:
+            name, description = line.split(": ", 1)
+            characters[name] = description.strip()
+
+    return characters
