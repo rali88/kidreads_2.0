@@ -2,9 +2,7 @@ from flask_smorest import Blueprint, abort
 from flask.views import MethodView
 from app.models import db, Story, Page
 from app.schemas import StorySchema, PageSchema
-from app.story_generator import generate_bullet_points, generate_story_page
-from langchain.llms import OpenAI
-from langchain.prompts import PromptTemplate
+from app.story_generator import generate_bullet_points, generate_story_page, extract_characters_from_illustration
 
 blp = Blueprint("stories", __name__, url_prefix="/api/stories", description="Operations on stories")
 
@@ -46,29 +44,3 @@ class PageList(MethodView):
         db.session.add(page)
         db.session.commit()
         return page
-
-def extract_characters_from_illustration(illustration):
-    """
-    Use LangChain with OpenAI to extract character descriptions from the illustration text.
-    """
-    llm = OpenAI(model_name="gpt-3.5-turbo")
-    prompt_template = PromptTemplate(
-        input_variables=["illustration"],
-        template="""
-        Extract the character descriptions from the following illustration text. 
-        Return the characters and their descriptions in the format 'CharacterName: description'.
-
-        Illustration Text:
-        {illustration}
-        """
-    )
-    prompt = prompt_template.format(illustration=illustration)
-    response = llm(prompt)
-    characters = {}
-
-    for line in response.strip().split("\n"):
-        if ": " in line:
-            name, description = line.split(": ", 1)
-            characters[name] = description.strip()
-
-    return characters

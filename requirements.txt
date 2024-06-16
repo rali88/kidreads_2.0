@@ -6,4 +6,4 @@ openai
 docker
 python-dotenv
 flask-sqlalchemy
-
+langchain-community

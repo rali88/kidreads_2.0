@@ -1,5 +1,7 @@
 import openai
 import os
+from langchain_community.llms import OpenAI
+from langchain.prompts import PromptTemplate
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -56,3 +58,29 @@ def generate_story_page(bullet_points, history, characters):
     illustration = illustration_response.choices[0].message.content.strip()
 
     return story_page, illustration
+
+def extract_characters_from_illustration(illustration):
+    """
+    Use LangChain with OpenAI to extract character descriptions from the illustration text.
+    """
+    llm = OpenAI(model_name="gpt-3.5-turbo")
+    prompt_template = PromptTemplate(
+        input_variables=["illustration"],
+        template="""
+        Extract the character descriptions from the following illustration text. 
+        Return the characters and their descriptions in the format 'CharacterName: description'.
+
+        Illustration Text:
+        {illustration}
+        """
+    )
+    prompt = prompt_template.format(illustration=illustration)
+    response = llm(prompt)
+    characters = {}
+
+    for line in response.strip().split("\n"):
+        if ": " in line:
+            name, description = line.split(": ", 1)
+            characters[name] = description.strip()
+
+    return characters
