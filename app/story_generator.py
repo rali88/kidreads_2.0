@@ -1,6 +1,6 @@
 import openai
 import os
-from langchain_community.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -63,7 +63,7 @@ def extract_characters_from_illustration(illustration):
     """
     Use LangChain with OpenAI to extract character descriptions from the illustration text.
     """
-    llm = OpenAI(model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo")
     prompt_template = PromptTemplate(
         input_variables=["illustration"],
         template="""
@@ -75,7 +75,7 @@ def extract_characters_from_illustration(illustration):
         """
     )
     prompt = prompt_template.format(illustration=illustration)
-    response = llm(prompt)
+    response = llm.invoke(prompt)
     characters = {}
 
     for line in response.strip().split("\n"):

@@ -1,15 +1,15 @@
 from flask_smorest import Blueprint, abort
 from flask.views import MethodView
 from app.models import db, Story, Page
-from app.schemas import StorySchema, PageSchema
+from app.schemas import StoryRequestSchema, StoryResponseSchema, PageRequestSchema, PageResponseSchema
 from app.story_generator import generate_bullet_points, generate_story_page, extract_characters_from_illustration
 
 blp = Blueprint("stories", __name__, url_prefix="/api/stories", description="Operations on stories")
 
 @blp.route("/")
 class StoryList(MethodView):
-    @blp.arguments(StorySchema)
-    @blp.response(201, StorySchema)
+    @blp.arguments(StoryRequestSchema)
+    @blp.response(201, StoryResponseSchema)
     def post(self, new_story_data):
         bullet_points = generate_bullet_points(new_story_data["age"], new_story_data["topic"], new_story_data["gender"])
         new_story_data["bullet_points"] = "\n".join(bullet_points)
@@ -20,13 +20,13 @@ class StoryList(MethodView):
 
 @blp.route("/<int:story_id>/pages")
 class PageList(MethodView):
-    @blp.response(200, PageSchema(many=True))
+    @blp.response(200, PageResponseSchema(many=True))
     def get(self, story_id):
         pages = Page.query.filter_by(story_id=story_id).all()
         return pages
     
-    @blp.arguments(PageSchema)
-    @blp.response(201, PageSchema)
+    @blp.arguments(PageRequestSchema)
+    @blp.response(201, PageResponseSchema)
     def post(self, new_page_data, story_id):
         story = Story.query.get_or_404(story_id)
         history = "\n".join([page.content for page in story.pages])
